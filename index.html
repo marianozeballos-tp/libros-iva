@@ -170,14 +170,15 @@ const ALI_C = [["21%","n21","i21"],["10,5%","n10","i10"],["27%","n27","i27"],["N
 function kpis(v,c){
   const deb = sum(v,vi.i21)+sum(v,vi.i105)+sum(v,vi.i27);
   const cred = sum(c,ci.i21)+sum(c,ci.i10)+sum(c,ci.i27);
-  const perc = sum(c,ci.p3337)+sum(c,ci.p5329);
+  // Igual que la columna PercIva del libro de Gescom: R.G.3337 + "RETENCION IVA" (Pepsico) + RG 5329
+  const perc = sum(c,ci.p3337)+sum(c,ci.p5329)+sum(c,ci.riva);
   const saldo = deb - cred;
   const k = document.getElementById("kpis");
   k.innerHTML = `
    <div class="kpi deb"><span class="lbl">Débito fiscal</span><span class="val">$ ${f2(deb)}</span><span class="note">${v.length.toLocaleString("es-AR")} comprobantes de venta</span></div>
    <div class="kpi cred"><span class="lbl">Crédito fiscal</span><span class="val">$ ${f2(cred)}</span><span class="note">${c.length.toLocaleString("es-AR")} comprobantes de compra</span></div>
    <div class="kpi saldo"><span class="lbl">Saldo técnico</span><span class="val">$ ${f2(saldo)}</span><span class="note"><span class="pill">${saldo>=0?"A pagar":"A favor"}</span> débito − crédito</span></div>
-   <div class="kpi"><span class="lbl">Percepciones de IVA sufridas</span><span class="val">$ ${f2(perc)}</span><span class="note">RG 3337 y RG 5329, en compras</span></div>`;
+   <div class="kpi"><span class="lbl">Percepciones de IVA sufridas</span><span class="val">$ ${f2(perc)}</span><span class="note">RG 3337, RG 5329 y "Retención IVA" de Gescom, en compras</span></div>`;
 }
 
 function tblAli(rows, isV){
@@ -186,7 +187,7 @@ function tblAli(rows, isV){
   A.forEach(([l,n,i])=>{ const sn=sum(rows,idx[n]), si=i?sum(rows,idx[i]):0; if(Math.abs(sn)<0.005&&Math.abs(si)<0.005) return; tn+=sn; tiv+=si;
     h+=`<tr><td>${l}</td><td class="n${sn<0?" neg":""}">${f2(sn)}</td><td class="n${si<0?" neg":""}">${i?f2(si):"—"}</td></tr>`; });
   const ext = isV ? [["Percepciones / tributos", sum(rows,vi.trib)]] :
-    [["Percepción IVA RG 3337",sum(rows,ci.p3337)],["Percepción IVA RG 5329",sum(rows,ci.p5329)],["Retención IVA",sum(rows,ci.riva)],["Percepción IIBB",sum(rows,ci.piibb)],["Retención IIBB",sum(rows,ci.riibb)],["Otros tributos",sum(rows,ci.otros)]];
+    [["Percepción IVA RG 3337",sum(rows,ci.p3337)],["Percepción IVA RG 5329",sum(rows,ci.p5329)],["Percepción IVA (\"Retención IVA\" en Gescom)",sum(rows,ci.riva)],["Percepción IIBB",sum(rows,ci.piibb)],["Retención IIBB",sum(rows,ci.riibb)],["Otros tributos",sum(rows,ci.otros)]];
   ext.forEach(([l,x])=>{ if(Math.abs(x)>=0.005) h+=`<tr><td>${l}</td><td class="n">—</td><td class="n${x<0?" neg":""}">${f2(x)}</td></tr>`; });
   const tot = sum(rows, isV?vi.total:ci.tot);
   h += `<tr class="tot"><td>Total neto e IVA</td><td class="n">${f2(tn)}</td><td class="n">${f2(tiv)}</td></tr></tbody>`;
@@ -269,7 +270,7 @@ function buildWorkbook(){
   const hv = ["Período","Empresa","CUIT empresa","Fecha","Tipo","Punto de venta","Número","Cód. cliente","Cliente","CUIT/DNI","Cond. IVA","Neto 21%","IVA 21%","Neto 10,5%","IVA 10,5%","Neto 27%","IVA 27%","No gravado/Exento","Tributos","Total","CAE"];
   const av = [hv, ...v.map(x=>[perLabel(x[vi.per]),EMP[x[vi.emp]].nombre,EMP[x[vi.emp]].cuit,toDate(x[vi.f]),x[vi.tc],x[vi.pv],x[vi.nro],x[vi.cod],x[vi.nom],x[vi.cuit],x[vi.civa],
      r2(x[vi.n21]),r2(x[vi.i21]),r2(x[vi.n105]),r2(x[vi.i105]),r2(x[vi.n27]),r2(x[vi.i27]),r2(x[vi.ngr]),r2(x[vi.trib]),r2(x[vi.total]),x[vi.cae]||""])];
-  const hc = ["Período imputación","Empresa","CUIT empresa","Fecha","Tipo","Punto de venta","Número","Cód. proveedor","Proveedor","CUIT","Cond. IVA","Neto 21%","IVA 21%","Neto 10,5%","IVA 10,5%","Neto 27%","IVA 27%","No gravado","Exento","Percep. IVA RG 3337","Percep. IVA RG 5329","Retención IVA","Percep. IIBB","Retención IIBB","Otros tributos","Total"];
+  const hc = ["Período imputación","Empresa","CUIT empresa","Fecha","Tipo","Punto de venta","Número","Cód. proveedor","Proveedor","CUIT","Cond. IVA","Neto 21%","IVA 21%","Neto 10,5%","IVA 10,5%","Neto 27%","IVA 27%","No gravado","Exento","Percep. IVA RG 3337","Percep. IVA RG 5329","Percep. IVA (Retención IVA Gescom)","Percep. IIBB","Retención IIBB","Otros tributos","Total"];
   const ac = [hc, ...c.map(x=>[perLabel(x[ci.per]),EMP[x[ci.emp]].nombre,EMP[x[ci.emp]].cuit,toDate(x[ci.f]),x[ci.tc],x[ci.pv],x[ci.nro],x[ci.cod],x[ci.nom],x[ci.cuit],x[ci.civa],
      r2(x[ci.n21]),r2(x[ci.i21]),r2(x[ci.n10]),r2(x[ci.i10]),r2(x[ci.n27]),r2(x[ci.i27]),r2(x[ci.ngr]),r2(x[ci.exe]),r2(x[ci.p3337]),r2(x[ci.p5329]),r2(x[ci.riva]),r2(x[ci.piibb]),r2(x[ci.riibb]),r2(x[ci.otros]),r2(x[ci.tot])])];
   // Resumen por empresa
@@ -284,7 +285,7 @@ function buildWorkbook(){
     ["Compras — Neto gravado 10,5%", r=>r[ci.n10], "c"],["Compras — Crédito fiscal 10,5%", r=>r[ci.i10], "c"],
     ["Compras — Neto gravado 27%", r=>r[ci.n27], "c"],["Compras — Crédito fiscal 27%", r=>r[ci.i27], "c"],
     ["Compras — No gravado", r=>r[ci.ngr], "c"],["Compras — Exento", r=>r[ci.exe], "c"],
-    ["Compras — Percepción IVA RG 3337", r=>r[ci.p3337], "c"],["Compras — Percepción IVA RG 5329", r=>r[ci.p5329], "c"],["Compras — Retención IVA", r=>r[ci.riva], "c"],
+    ["Compras — Percepción IVA RG 3337", r=>r[ci.p3337], "c"],["Compras — Percepción IVA RG 5329", r=>r[ci.p5329], "c"],["Compras — Percepción IVA (Retención IVA Gescom)", r=>r[ci.riva], "c"],["Compras — Percepciones de IVA (total, como PercIva de Gescom)", r=>r[ci.p3337]+r[ci.p5329]+r[ci.riva], "c"],
     ["Compras — Percepción IIBB", r=>r[ci.piibb], "c"],["Compras — Retención IIBB", r=>r[ci.riibb], "c"],["Compras — Otros tributos", r=>r[ci.otros], "c"],["Compras — Total", r=>r[ci.tot], "c"],
     ["Débito fiscal total", r=>r[vi.i21]+r[vi.i105]+r[vi.i27], "v"],["Crédito fiscal total", r=>r[ci.i21]+r[ci.i10]+r[ci.i27], "c"]];
   lines.forEach(([l,fn,src])=>{ const vals = emps.map(e=>r2((src==="v"?v.filter(r=>r[vi.emp]===e):c.filter(r=>r[ci.emp]===e)).reduce((a,r)=>a+fn(r),0))); res.push([l,...vals,...(emps.length>1?[r2(vals.reduce((a,b)=>a+b,0))]:[])]); });
